@@ -2,7 +2,6 @@ package gojieba
 
 import (
 	"path"
-	"runtime"
 )
 
 var (
@@ -26,22 +25,8 @@ func init() {
 const TOTAL_DICT_PATH_NUMBER = 5
 
 func getDictPaths(args ...string) [TOTAL_DICT_PATH_NUMBER]string {
-	dicts := [TOTAL_DICT_PATH_NUMBER]string{
-		DICT_PATH,
-		HMM_PATH,
-		USER_DICT_PATH,
-		IDF_PATH,
-		STOP_WORDS_PATH,
-	}
-	for i := 0; i < len(args) && i < len(dicts); i++ {
-		if args[i] != "" {
-			dicts[i] = args[i]
-		}
-	}
-	return dicts
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func getCurrentFilePath() string {
-	_, filePath, _, _ := runtime.Caller(1)
-	return filePath
-}
+func getCurrentFilePath() string { _ = "STUB: not implemented"; return "" }

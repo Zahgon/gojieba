@@ -8,21 +8,16 @@ package gojieba
 import "C"
 
 import (
-	"fmt"
-	"os"
-	"runtime"
-	"sync/atomic"
-	"unsafe"
 
 	// These blank imports ensure `go mod vendor` copies the C++ header files
 	// from deps/cppjieba and deps/limonp into the vendor directory, so that
 	// CGo builds work correctly when using `go mod vendor`. They also ensure
 	// the dictionary data files are included in the vendor directory for the
 	// default dictionary paths to work at runtime.
-	_ "github.com/yanyiwu/gojieba/deps/cppjieba/include/cppjieba"
 	_ "github.com/yanyiwu/gojieba/deps/cppjieba/deps/limonp/include/limonp"
 	_ "github.com/yanyiwu/gojieba/deps/cppjieba/dict"
 	_ "github.com/yanyiwu/gojieba/deps/cppjieba/dict/pos_dict"
+	_ "github.com/yanyiwu/gojieba/deps/cppjieba/include/cppjieba"
 )
 
 type TokenizeMode int
@@ -43,129 +38,46 @@ type Jieba struct {
 	freed int32
 }
 
-func NewJieba(paths ...string) *Jieba {
-	dictpaths := getDictPaths(paths...)
+func NewJieba(paths ...string) *Jieba { _ = "STUB: not implemented"; return nil }
 
-	// check if the dictionary files exist
-	for _, path := range dictpaths {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			panic(fmt.Sprintf("Dictionary file does not exist: %s", path))
-		}
-	}
+// check if the dictionary files exist
 
-	dpath, hpath, upath, ipath, spath := C.CString(dictpaths[0]), C.CString(dictpaths[1]), C.CString(dictpaths[2]), C.CString(dictpaths[3]), C.CString(dictpaths[4])
-	defer C.free(unsafe.Pointer(dpath))
-	defer C.free(unsafe.Pointer(hpath))
-	defer C.free(unsafe.Pointer(upath))
-	defer C.free(unsafe.Pointer(ipath))
-	defer C.free(unsafe.Pointer(spath))
-	jieba := &Jieba{
-		C.NewJieba(
-			dpath,
-			hpath,
-			upath,
-			ipath,
-			spath,
-		),
-		0,
-	}
-	// set finalizer to free the memory when the object is garbage collected
-	runtime.SetFinalizer(jieba, (*Jieba).Free)
-	return jieba
-}
+// set finalizer to free the memory when the object is garbage collected
 
-func (x *Jieba) Free() {
-	if atomic.CompareAndSwapInt32(&x.freed, 0, 1) { // only free once
-		C.FreeJieba(x.jieba)
-		C.Trim()
-	}
-}
+func (x *Jieba) Free() { _ = "STUB: not implemented"; return }
+
+// only free once
 
 // Deprecated: Use Free() instead. Free() now calls Trim() automatically.
 func (x *Jieba) FreeWithTrim() {
-	x.Free()
+	_ = "STUB: not implemented"
+
+	// Deprecated: WithTrim is no longer necessary; Free() now calls Trim()
+	// automatically on Linux. Calling this method is a no-op.
+	return
 }
 
-// Deprecated: WithTrim is no longer necessary; Free() now calls Trim()
-// automatically on Linux. Calling this method is a no-op.
-func (x *Jieba) WithTrim() *Jieba {
-	return x
-}
+func (x *Jieba) WithTrim() *Jieba { _ = "STUB: not implemented"; return nil }
 
-func (x *Jieba) Cut(s string, hmm bool) []string {
-	c_int_hmm := 0
-	if hmm {
-		c_int_hmm = 1
-	}
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words *C.Word = C.Cut(x.jieba, cstr, C.int(c_int_hmm))
-	defer C.free(unsafe.Pointer(words)) // can directly use free now...
-	res := convertCWordToSlice(s, words)
-	return res
-}
+func (x *Jieba) Cut(s string, hmm bool) []string { _ = "STUB: not implemented"; return nil }
 
-func (x *Jieba) CutAll(s string) []string {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words *C.Word = C.CutAll(x.jieba, cstr)
-	defer C.free(unsafe.Pointer(words))
-	res := convertCWordToSlice(s, words)
-	return res
-}
+// can directly use free now...
 
-func (x *Jieba) CutForSearch(s string, hmm bool) []string {
-	c_int_hmm := 0
-	if hmm {
-		c_int_hmm = 1
-	}
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words *C.Word = C.CutForSearch(x.jieba, cstr, C.int(c_int_hmm))
-	defer C.free(unsafe.Pointer(words))
-	res := convertCWordToSlice(s, words)
-	return res
-}
+func (x *Jieba) CutAll(s string) []string { _ = "STUB: not implemented"; return nil }
 
-func (x *Jieba) Tag(s string) []string {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words **C.char = C.Tag(x.jieba, cstr)
-	defer C.FreeWords(words)
-	res := cstrings(words)
-	return res
-}
+func (x *Jieba) CutForSearch(s string, hmm bool) []string { _ = "STUB: not implemented"; return nil }
 
-func (x *Jieba) AddWord(s string) {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	C.AddWord(x.jieba, cstr)
-}
+func (x *Jieba) Tag(s string) []string { _ = "STUB: not implemented"; return nil }
 
-func (x *Jieba) AddWordEx(s string, freq int, tag string) {
-	cstr := C.CString(s)
-	ctag := C.CString(tag)
-	defer C.free(unsafe.Pointer(ctag))
-	defer C.free(unsafe.Pointer(cstr))
-	C.AddWordEx(x.jieba, cstr, C.int(freq), ctag)
-}
+func (x *Jieba) AddWord(s string) { _ = "STUB: not implemented"; return }
 
-func (x *Jieba) RemoveWord(s string) {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	C.RemoveWord(x.jieba, cstr)
-}
+func (x *Jieba) AddWordEx(s string, freq int, tag string) { _ = "STUB: not implemented"; return }
+
+func (x *Jieba) RemoveWord(s string) { _ = "STUB: not implemented"; return }
 
 func (x *Jieba) Tokenize(s string, mode TokenizeMode, hmm bool) []Word {
-	c_int_hmm := 0
-	if hmm {
-		c_int_hmm = 1
-	}
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words *C.Word = C.Tokenize(x.jieba, cstr, C.TokenizeMode(mode), C.int(c_int_hmm))
-	defer C.free(unsafe.Pointer(words))
-	return convertCWordToStructs(s, words)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 type WordWeight struct {
@@ -173,73 +85,21 @@ type WordWeight struct {
 	Weight float64
 }
 
-func (x *Jieba) Extract(s string, topk int) []string {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	var words **C.char = C.Extract(x.jieba, cstr, C.int(topk))
-	res := cstrings(words)
-	defer C.FreeWords(words)
-	return res
-}
+func (x *Jieba) Extract(s string, topk int) []string { _ = "STUB: not implemented"; return nil }
 
 func (x *Jieba) ExtractWithWeight(s string, topk int) []WordWeight {
-	cstr := C.CString(s)
-	defer C.free(unsafe.Pointer(cstr))
-	words := C.ExtractWithWeight(x.jieba, cstr, C.int(topk))
-	res := cwordweights(words)
-	defer C.FreeWordWeights(words)
-	return res
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func cwordweights(x *C.struct_CWordWeight) []WordWeight {
-	var s []WordWeight
-	eltSize := unsafe.Sizeof(*x)
-	for (*x).word != nil {
-		ww := WordWeight{
-			C.GoString(((C.struct_CWordWeight)(*x)).word),
-			float64((*x).weight),
-		}
-		s = append(s, ww)
-		x = (*C.struct_CWordWeight)(unsafe.Pointer(uintptr(unsafe.Pointer(x)) + eltSize))
-	}
-	return s
-}
+func cwordweights(x *C.struct_CWordWeight) []WordWeight { _ = "STUB: not implemented"; return nil }
 
 // convertCWordToSlice convert *C.Word to []string (zero-copy)
-func convertCWordToSlice(s string, x *C.Word) []string {
-	var res []string
-	p := x
-	// 假设 C++ 返回以 {0,0} 结尾的哨兵
-	for p != nil && p.len != 0 {
-		start := int(p.offset)
-		end := start + int(p.len)
-		if start <= end && end <= len(s) {
-			res = append(res, s[start:end])
-		}
-		p = (*C.Word)(unsafe.Pointer(uintptr(unsafe.Pointer(p)) + unsafe.Sizeof(*p)))
-	}
-	return res
-}
+func convertCWordToSlice(s string, x *C.Word) []string { _ = "STUB: not implemented"; return nil }
+
+// 假设 C++ 返回以 {0,0} 结尾的哨兵
 
 // convertCWordToStructs convert *C.Word to []Word (Go Struct)
-func convertCWordToStructs(s string, x *C.Word) []Word {
-	var res []Word
-	p := x
-	for p != nil && p.len != 0 {
-		start := int(p.offset)
-		end := start + int(p.len)
-		if start <= end && end <= len(s) {
-			res = append(res, Word{
-				Str:   s[start:end],
-				Start: start,
-				End:   end,
-			})
-		}
-		p = (*C.Word)(unsafe.Pointer(uintptr(unsafe.Pointer(p)) + unsafe.Sizeof(*p)))
-	}
-	return res
-}
+func convertCWordToStructs(s string, x *C.Word) []Word { _ = "STUB: not implemented"; return nil }
 
-func Trim() {
-	C.Trim()
-}
+func Trim() { _ = "STUB: not implemented"; return }
